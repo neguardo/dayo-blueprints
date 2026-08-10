@@ -111,6 +111,17 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
+-- Backfill users that were created before the trigger existed.
+insert into public.profiles (id, display_name)
+select id, raw_user_meta_data ->> 'display_name'
+from auth.users
+on conflict (id) do nothing;
+
+insert into public.user_preferences (user_id)
+select id
+from auth.users
+on conflict (user_id) do nothing;
+
 alter table public.profiles enable row level security;
 alter table public.tasks enable row level security;
 alter table public.user_preferences enable row level security;

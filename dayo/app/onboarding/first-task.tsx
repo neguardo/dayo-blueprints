@@ -8,6 +8,7 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { colors } from '../../constants/theme';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { createTask } from '../../features/tasks/taskService';
+import { getErrorMessage } from '../../lib/errorMessage';
 
 export default function FirstTaskScreen() {
   const { data, update } = useOnboarding();
@@ -26,7 +27,7 @@ export default function FirstTaskScreen() {
       update({ estimatedMinutes, firstTaskId: task.id });
       router.push('/onboarding/generated-plan');
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not create your task.');
+      setError(getErrorMessage(caught, 'Could not create your task.'));
     } finally {
       setLoading(false);
     }

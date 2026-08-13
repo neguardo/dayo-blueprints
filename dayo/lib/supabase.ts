@@ -13,7 +13,22 @@ if (!supabaseUrl || !supabaseKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
+const parsedSupabaseUrl = new URL(supabaseUrl);
+if (
+  parsedSupabaseUrl.protocol !== 'https:' ||
+  !parsedSupabaseUrl.hostname.endsWith('.supabase.co')
+) {
+  throw new Error(
+    'EXPO_PUBLIC_SUPABASE_URL must be the HTTPS Project URL from Supabase settings.',
+  );
+}
+
+// Supabase's client appends /auth/v1 and /rest/v1 itself. Accept a pasted API
+// endpoint but normalize it to the project root so requests cannot contain a
+// duplicated path such as /rest/v1/auth/v1/signup.
+const supabaseProjectUrl = parsedSupabaseUrl.origin;
+
+export const supabase = createClient(supabaseProjectUrl, supabaseKey, {
   auth: {
     storage: globalThis.localStorage,
     autoRefreshToken: true,

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '../constants/theme';
 import { createTask } from '../features/tasks/taskService';
+import { getErrorMessage } from '../lib/errorMessage';
 import type { Task, TaskPriority } from '../types/database';
 import { DayoButton } from './DayoButton';
 
@@ -27,7 +28,7 @@ export function CreateTaskModal({ visible, onClose, onCreated }: { visible: bool
       setPriority('medium');
       onCreated(task);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not create your task.');
+      setError(getErrorMessage(caught, 'Could not create your task.'));
     } finally {
       setLoading(false);
     }

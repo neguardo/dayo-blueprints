@@ -36,12 +36,17 @@ export default function TodayScreen() {
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <View style={styles.brand}><DayoLogo compact /><Text style={styles.wordmark}>DAYO</Text></View>
-          <Pressable onPress={() => void supabase.auth.signOut()} style={styles.avatar}><Text style={styles.avatarText}>{firstName[0].toUpperCase()}</Text></Pressable>
+        <View style={styles.hero}>
+          <View style={styles.header}>
+            <View style={styles.brand}><DayoLogo compact /><Text style={styles.wordmark}>DAYO</Text></View>
+            <Pressable accessibilityLabel="Log out" onPress={() => void supabase.auth.signOut()} style={styles.avatar}>
+              <View style={styles.profileHead} />
+              <View style={styles.profileBody} />
+            </Pressable>
+          </View>
+          <Text style={styles.greeting}>Good morning,{`\n`}{firstName}.</Text>
+          <Text style={styles.subtitle}>Let’s make today count.</Text>
         </View>
-        <Text style={styles.greeting}>Good morning,{`\n`}{firstName}.</Text>
-        <Text style={styles.subtitle}>Let’s make today count.</Text>
 
         {currentTask ? (
           <View style={styles.nowCard}>
@@ -67,27 +72,29 @@ export default function TodayScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { backgroundColor: colors.paper, flex: 1 },
-  content: { padding: 22, paddingBottom: 36 },
-  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 38 },
+  safe: { backgroundColor: colors.navy, flex: 1 },
+  content: { backgroundColor: colors.paper, paddingBottom: 36 },
+  hero: { backgroundColor: colors.navy, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, paddingBottom: 28, paddingHorizontal: 22, paddingTop: 14 },
+  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 34 },
   brand: { alignItems: 'center', flexDirection: 'row' },
-  wordmark: { color: colors.navy, fontSize: 17, fontWeight: '800', letterSpacing: 5, marginLeft: 10 },
-  avatar: { alignItems: 'center', backgroundColor: colors.navy, borderRadius: 20, height: 40, justifyContent: 'center', width: 40 },
-  avatarText: { color: colors.lime, fontSize: 16, fontWeight: '800' },
-  greeting: { color: colors.ink, fontSize: 32, fontWeight: '700', lineHeight: 39 },
-  subtitle: { color: colors.muted, fontSize: 14, marginTop: 8 },
-  nowCard: { backgroundColor: colors.navy, borderRadius: 19, marginTop: 28, padding: 19 },
+  wordmark: { color: colors.cream, fontSize: 17, fontWeight: '800', letterSpacing: 5, marginLeft: 10 },
+  avatar: { alignItems: 'center', borderColor: 'rgba(255,255,255,0.35)', borderRadius: 20, borderWidth: 1, height: 40, justifyContent: 'center', width: 40 },
+  profileHead: { backgroundColor: colors.white, borderRadius: 5, height: 10, marginBottom: 3, width: 10 },
+  profileBody: { backgroundColor: colors.white, borderTopLeftRadius: 8, borderTopRightRadius: 8, height: 9, width: 18 },
+  greeting: { color: colors.white, fontSize: 32, fontWeight: '700', lineHeight: 39 },
+  subtitle: { color: colors.mutedLight, fontSize: 14, marginTop: 8 },
+  nowCard: { backgroundColor: colors.navy, borderRadius: 19, marginHorizontal: 22, marginTop: 22, padding: 19 },
   eyebrow: { color: colors.lime, fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
   nowTitle: { color: colors.white, fontSize: 20, fontWeight: '700', marginTop: 13 },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
   meta: { color: colors.mutedLight, fontSize: 12, textTransform: 'capitalize' },
   encouragement: { color: '#d9e0e5', fontSize: 13, lineHeight: 19, marginBottom: 17, marginTop: 20 },
-  sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 13, marginTop: 29 },
+  sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 13, marginHorizontal: 22, marginTop: 29 },
   sectionTitle: { color: colors.ink, fontSize: 17, fontWeight: '700' },
   add: { color: '#728f25', fontSize: 13, fontWeight: '700' },
-  list: { gap: 10 },
-  error: { color: colors.danger, fontSize: 13, marginBottom: 12 },
-  empty: { alignItems: 'center', backgroundColor: colors.white, borderColor: colors.line, borderRadius: 16, borderWidth: 1, padding: 28 },
+  list: { gap: 10, paddingHorizontal: 22 },
+  error: { color: colors.danger, fontSize: 13, marginBottom: 12, marginHorizontal: 22 },
+  empty: { alignItems: 'center', backgroundColor: colors.white, borderColor: colors.line, borderRadius: 16, borderWidth: 1, marginHorizontal: 22, padding: 28 },
   emptyIcon: { color: '#8dad31', fontSize: 25 },
   emptyTitle: { color: colors.ink, fontSize: 16, fontWeight: '700', marginTop: 9 },
   emptyCopy: { color: colors.muted, fontSize: 13, marginTop: 5 },

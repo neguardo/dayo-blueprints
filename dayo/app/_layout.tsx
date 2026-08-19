@@ -32,6 +32,8 @@ function RootNavigator() {
       <Stack.Protected guard={Boolean(session) && onboardingCompleted}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="focus" options={{ animation: 'fade' }} />
+        <Stack.Screen name="task" />
+        <Stack.Screen name="settings" />
       </Stack.Protected>
     </Stack>
   );

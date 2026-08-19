@@ -1,6 +1,7 @@
 export type ProductivityPeriod = 'morning' | 'afternoon' | 'evening' | 'varies';
 export type PreferredFocusPeriod = 'morning' | 'afternoon' | 'evening' | 'none';
 export type SubscriptionType = 'free' | 'pro';
+export type PlanningBehavior = 'light' | 'balanced' | 'proactive';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type TaskStatus =
   | 'pending'
@@ -9,6 +10,26 @@ export type TaskStatus =
   | 'completed'
   | 'missed'
   | 'cancelled';
+export type CalendarEventType = 'activity' | 'fixed';
+
+export interface CalendarEvent {
+  id: string;
+  user_id: string;
+  task_id: string | null;
+  title: string;
+  event_type: CalendarEventType;
+  starts_at: string;
+  ends_at: string;
+  created_at: string;
+}
+
+export interface CreateCalendarEventInput {
+  title: string;
+  event_type: CalendarEventType;
+  starts_at: string;
+  ends_at: string;
+  task_id?: string | null;
+}
 
 export interface Profile {
   id: string;
@@ -47,6 +68,7 @@ export interface UserPreferences {
   preferred_focus_period: PreferredFocusPeriod;
   notifications_enabled: boolean;
   auto_reschedule_enabled: boolean;
+  planning_behavior: PlanningBehavior;
   created_at: string;
   updated_at: string;
 }

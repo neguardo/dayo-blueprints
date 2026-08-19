@@ -13,7 +13,10 @@ export default function ProgressScreen() {
   const stats = useMemo(() => {
     const completed = tasks.filter((task) => task.status === 'completed');
     const percent = tasks.length ? Math.round((completed.length / tasks.length) * 100) : 0;
-    const minutes = completed.reduce((total, task) => total + task.estimated_minutes, 0);
+    const minutes = completed.reduce(
+      (total, task) => total + (task.completed_minutes > 0 ? task.completed_minutes : task.estimated_minutes),
+      0,
+    );
     return { completed: completed.length, percent, minutes };
   }, [tasks]);
 

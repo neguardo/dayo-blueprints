@@ -12,6 +12,8 @@ export function CreateTaskModal({ visible, onClose, onCreated }: { visible: bool
   const [title, setTitle] = useState('');
   const [minutes, setMinutes] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [plannedDate, setPlannedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [plannedTime, setPlannedTime] = useState('18:00');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,7 +24,9 @@ export function CreateTaskModal({ visible, onClose, onCreated }: { visible: bool
       const estimatedMinutes = Number(minutes);
       if (!title.trim()) throw new Error('Give your task a title.');
       if (!Number.isInteger(estimatedMinutes) || estimatedMinutes <= 0) throw new Error('Enter a valid number of minutes.');
-      const task = await createTask({ title, estimated_minutes: estimatedMinutes, priority, status: 'pending' });
+      const scheduled = new Date(`${plannedDate}T${plannedTime}:00`);
+      if (Number.isNaN(scheduled.getTime())) throw new Error('Enter a valid date and time.');
+      const task = await createTask({ title, estimated_minutes: estimatedMinutes, deadline: scheduled.toISOString(), priority, status: 'pending' });
       setTitle('');
       setMinutes('');
       setPriority('medium');
@@ -47,6 +51,7 @@ export function CreateTaskModal({ visible, onClose, onCreated }: { visible: bool
             <TextInput autoFocus onChangeText={setTitle} placeholder="Finish my portfolio" placeholderTextColor="#87908a" style={styles.input} value={title} />
             <Text style={styles.label}>Estimated minutes</Text>
             <TextInput keyboardType="number-pad" onChangeText={setMinutes} placeholder="45" placeholderTextColor="#87908a" style={styles.input} value={minutes} />
+            <View style={styles.scheduleRow}><View style={styles.scheduleDate}><Text style={styles.label}>Day</Text><TextInput maxLength={10} onChangeText={setPlannedDate} style={styles.input} value={plannedDate} /></View><View style={styles.scheduleTime}><Text style={styles.label}>Time</Text><TextInput keyboardType="numbers-and-punctuation" maxLength={5} onChangeText={setPlannedTime} style={styles.input} value={plannedTime} /></View></View>
             <Text style={styles.label}>Priority</Text>
             <View style={styles.priorities}>
               {(['low', 'medium', 'high', 'urgent'] as TaskPriority[]).map((value) => (
@@ -74,6 +79,7 @@ const styles = StyleSheet.create({
   close: { color: colors.white, fontSize: 32, fontWeight: '300' },
   label: { color: '#ccd4da', fontSize: 12, fontWeight: '700', marginBottom: 8 },
   input: { backgroundColor: colors.navyLight, borderColor: colors.darkLine, borderRadius: 13, borderWidth: 1, color: colors.white, fontSize: 16, marginBottom: 20, padding: 15 },
+  scheduleRow: { flexDirection: 'row', gap: 10 }, scheduleDate: { flex: 1.5 }, scheduleTime: { flex: 1 },
   priorities: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
   priority: { borderColor: colors.darkLine, borderRadius: 18, borderWidth: 1, paddingHorizontal: 13, paddingVertical: 9 },
   priorityActive: { backgroundColor: colors.lime, borderColor: colors.lime },

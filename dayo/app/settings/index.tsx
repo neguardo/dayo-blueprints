@@ -23,12 +23,12 @@ const behaviorOptions: Array<{
 ];
 
 const sections = [
-  { icon: '≡', title: 'Planning Preferences', subtitle: 'Work rhythm, breaks and availability' },
-  { icon: '✦', title: 'Smart Planning', subtitle: 'Future AI planning controls' },
-  { icon: '◉', title: 'Notifications', subtitle: 'Reminders and planning updates' },
-  { icon: '◷', title: 'Focus', subtitle: 'Focus sessions and breaks' },
-  { icon: '☼', title: 'Appearance', subtitle: 'Theme and display preferences' },
-  { icon: '◇', title: 'Privacy', subtitle: 'Data and account privacy' },
+  { icon: '≡', slug: 'planning-preferences', title: 'Planning Preferences', subtitle: 'Work rhythm, breaks and availability' },
+  { icon: '✦', slug: 'smart-planning', title: 'Smart Planning', subtitle: 'AI planning controls' },
+  { icon: '◉', slug: 'notifications', title: 'Notifications', subtitle: 'Reminders and planning updates' },
+  { icon: '◷', slug: 'focus', title: 'Focus', subtitle: 'Focus sessions and breaks' },
+  { icon: '☼', slug: 'appearance', title: 'Appearance', subtitle: 'Theme and display preferences' },
+  { icon: '◇', slug: 'privacy', title: 'Privacy', subtitle: 'Privacy policy, cookies and data' },
 ];
 
 export default function SettingsScreen() {
@@ -69,11 +69,11 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={styles.sectionLabel}>ACCOUNT</Text>
-        <View style={styles.accountCard}>
+        <Pressable onPress={() => router.push({ pathname: '/settings/[section]', params: { section: 'account' } })} style={styles.accountCard}>
           <View style={styles.accountAvatar}><Text style={styles.accountAvatarText}>{session?.user.email?.[0].toUpperCase() ?? 'D'}</Text></View>
           <View style={styles.accountBody}><Text style={styles.accountTitle}>Account</Text><Text style={styles.accountEmail}>{session?.user.email}</Text></View>
           <Text style={styles.chevron}>›</Text>
-        </View>
+        </Pressable>
 
         <Text style={styles.subsectionTitle}>Planning behavior</Text>
         <Text style={styles.subsectionCopy}>Choose how actively DAYO’s future AI planner should help you.</Text>
@@ -95,7 +95,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionLabel}>PREFERENCES</Text>
         <View style={styles.settingsList}>
           {sections.map((section, index) => (
-            <Pressable key={section.title} style={[styles.settingsRow, index > 0 && styles.settingsRowBorder]}>
+            <Pressable key={section.title} onPress={() => router.push({ pathname: '/settings/[section]', params: { section: section.slug } })} style={[styles.settingsRow, index > 0 && styles.settingsRowBorder]}>
               <View style={styles.settingsIcon}><Text style={styles.settingsIconText}>{section.icon}</Text></View>
               <View style={styles.settingsBody}><Text style={styles.settingsTitle}>{section.title}</Text><Text style={styles.settingsSubtitle}>{section.subtitle}</Text></View>
               <Text style={styles.chevron}>›</Text>

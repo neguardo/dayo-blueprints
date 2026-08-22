@@ -55,7 +55,7 @@ create table if not exists public.tasks (
   description text,
   category text,
   estimated_minutes integer not null check (estimated_minutes > 0),
-  deadline timestamptz,
+  deadline timestamptz not null,
   priority public.task_priority not null default 'medium',
   status public.task_status not null default 'pending',
   planned_minutes integer not null default 0 check (planned_minutes >= 0),
@@ -63,6 +63,35 @@ create table if not exists public.tasks (
   created_at timestamptz not null default now(),
   completed_at timestamptz
 );
+
+-- Existing projects may still have nullable deadlines. Give legacy tasks a
+-- deterministic end time before enforcing that every new task is scheduled.
+update public.tasks
+set deadline = created_at
+where deadline is null;
+
+alter table public.tasks
+alter column deadline set not null;
+
+create or replace function public.expire_overdue_tasks()
+returns integer
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  update public.tasks
+  set status = 'missed'
+  where user_id = (select auth.uid())
+    and status in ('pending', 'scheduled', 'in_progress')
+    and deadline + make_interval(mins => estimated_minutes + 5) <= now();
+
+  get diagnostics affected = row_count;
+  return affected;
+end;
+$$;
 
 create table if not exists public.user_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -250,4 +279,5 @@ using ((select auth.uid()) = user_id);
 grant select, update on public.profiles to authenticated;
 grant select, update on public.user_preferences to authenticated;
 grant select, insert, update, delete on public.tasks to authenticated;
+grant execute on function public.expire_overdue_tasks() to authenticated;
 grant select, insert, update, delete on public.calendar_events to authenticated;

@@ -1,11 +1,29 @@
+import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../constants/theme';
 import type { Task } from '../types/database';
 
-export function TaskCard({ task, onPress }: { task: Task; onPress?: () => void }) {
+export function TaskCard({ task, onPress, onLongPress }: { task: Task; onPress?: () => void; onLongPress?: () => void }) {
+  const longPressHandled = useRef(false);
+
   return (
-    <Pressable disabled={!onPress} onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+    <Pressable
+      disabled={!onPress && !onLongPress}
+      delayLongPress={450}
+      onLongPress={() => {
+        longPressHandled.current = true;
+        onLongPress?.();
+      }}
+      onPress={() => {
+        if (longPressHandled.current) {
+          longPressHandled.current = false;
+          return;
+        }
+        onPress?.();
+      }}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
       <View style={styles.icon}><Text style={styles.iconText}>{task.status === 'completed' ? '✓' : '✦'}</Text></View>
       <View style={styles.body}>
         <Text numberOfLines={2} style={[styles.title, task.status === 'completed' && styles.done]}>{task.title}</Text>

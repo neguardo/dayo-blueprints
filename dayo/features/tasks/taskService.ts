@@ -28,6 +28,8 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
 
 export async function getTasks(): Promise<Task[]> {
   const userId = await requireUserId();
+  const { error: expiryError } = await supabase.rpc('expire_overdue_tasks');
+  if (expiryError) throw expiryError;
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
@@ -70,6 +72,13 @@ export async function updateTask(
 
 export async function deleteTask(taskId: string): Promise<void> {
   const userId = await requireUserId();
+  const { error: calendarError } = await supabase
+    .from('calendar_events')
+    .delete()
+    .eq('task_id', taskId)
+    .eq('user_id', userId);
+
+  if (calendarError) throw calendarError;
   const { error } = await supabase
     .from('tasks')
     .delete()

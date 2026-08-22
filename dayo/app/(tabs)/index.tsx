@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,12 +12,24 @@ import { getTasks } from '../../features/tasks/taskService';
 import { supabase } from '../../lib/supabase';
 import type { Task } from '../../types/database';
 
+function sameDay(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear()
+    && left.getMonth() === right.getMonth()
+    && left.getDate() === right.getDate();
+}
+
 export default function TodayScreen() {
   const { session } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const load = useCallback(async () => {
     setError('');
@@ -29,8 +41,14 @@ export default function TodayScreen() {
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
   const firstName = (session?.user.user_metadata.display_name as string | undefined)?.split(' ')[0] || session?.user.email?.split('@')[0] || 'there';
-  const openTasks = tasks.filter((task) => task.status !== 'completed' && task.status !== 'cancelled');
+  const openTasks = tasks
+    .filter((task) => !['completed', 'cancelled', 'missed'].includes(task.status))
+    .filter((task) => task.deadline && sameDay(new Date(task.deadline), now))
+    .sort((left, right) => new Date(left.deadline ?? 0).getTime() - new Date(right.deadline ?? 0).getTime());
   const currentTask = openTasks[0];
+  const currentTaskStartsLater = currentTask?.deadline
+    ? new Date(currentTask.deadline).getTime() > now.getTime()
+    : false;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
@@ -59,22 +77,22 @@ export default function TodayScreen() {
         </View>
 
         {currentTask ? (
-          <View style={styles.nowCard}>
+          <Pressable delayLongPress={450} onLongPress={() => router.push({ pathname: '/task/[id]', params: { id: currentTask.id } })} style={styles.nowCard}>
             <Text style={styles.eyebrow}>NOW</Text>
             <Text style={styles.nowTitle}>{currentTask.title}</Text>
             <View style={styles.metaRow}><Text style={styles.meta}>{currentTask.estimated_minutes} minutes</Text><Text style={styles.meta}>{currentTask.priority}</Text></View>
             <Text style={styles.encouragement}>You have enough time. Let’s make a calm start.</Text>
-            <DayoButton onPress={() => router.push({ pathname: '/focus', params: { id: currentTask.id, title: currentTask.title, minutes: String(currentTask.estimated_minutes) } })} variant="lime">▶  Start focus</DayoButton>
-          </View>
+            <DayoButton onPress={() => router.push({ pathname: '/focus', params: { id: currentTask.id, title: currentTask.title, minutes: String(currentTask.estimated_minutes) } })} variant="lime">{currentTaskStartsLater ? 'Start early' : 'Start task'}</DayoButton>
+          </Pressable>
         ) : null}
 
         <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>{currentTask ? 'Up next' : 'Your tasks'}</Text></View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {loading ? <ActivityIndicator color={colors.navy} /> : null}
-        {!loading && tasks.length === 0 ? (
-          <View style={styles.empty}><Text style={styles.emptyIcon}>✓</Text><Text style={styles.emptyTitle}>Your day is clear</Text><Text style={styles.emptyCopy}>Add a task when you’re ready.</Text></View>
+        {!loading && openTasks.length === 0 ? (
+          <View style={styles.empty}><Text style={styles.emptyIcon}>✓</Text><Text style={styles.emptyTitle}>No tasks left today</Text><Text style={styles.emptyCopy}>You’re all done for today.</Text></View>
         ) : null}
-        <View style={styles.list}>{(currentTask ? openTasks.slice(1) : openTasks).map((task) => <TaskCard key={task.id} onPress={() => router.push({ pathname: '/focus', params: { id: task.id, title: task.title, minutes: String(task.estimated_minutes) } })} task={task} />)}</View>
+        <View style={styles.list}>{(currentTask ? openTasks.slice(1) : openTasks).map((task) => <TaskCard key={task.id} onLongPress={() => router.push({ pathname: '/task/[id]', params: { id: task.id } })} onPress={() => router.push({ pathname: '/focus', params: { id: task.id, title: task.title, minutes: String(task.estimated_minutes) } })} task={task} />)}</View>
       </ScrollView>
     </SafeAreaView>
   );

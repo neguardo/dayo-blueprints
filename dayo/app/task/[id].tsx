@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DayoButton } from '../../components/DayoButton';
 import { colors } from '../../constants/theme';
+import { updateCalendarEventForTask } from '../../features/calendar/calendarService';
 import { deleteTask, getTaskById, updateTask } from '../../features/tasks/taskService';
 import { getErrorMessage } from '../../lib/errorMessage';
 import type { Task } from '../../types/database';
@@ -74,10 +75,16 @@ export default function EditTaskScreen() {
       if (!title.trim()) throw new Error('The task needs a title.');
       if (!deadline) throw new Error('Use time format HH:MM, for example 14:30.');
       if (!Number.isInteger(estimatedMinutes) || estimatedMinutes <= 0) throw new Error('Enter a valid duration in minutes.');
+      const endsAt = new Date(deadline.getTime() + estimatedMinutes * 60_000);
       await updateTask(task.id, {
         title: title.trim(),
         deadline: deadline.toISOString(),
         estimated_minutes: estimatedMinutes,
+      });
+      await updateCalendarEventForTask(task.id, {
+        title: title.trim(),
+        starts_at: deadline.toISOString(),
+        ends_at: endsAt.toISOString(),
       });
       router.replace('/(tabs)/plan');
     } catch (caught) {

@@ -13,6 +13,8 @@ import { getErrorMessage } from '../../lib/errorMessage';
 export default function FirstTaskScreen() {
   const { data, update } = useOnboarding();
   const [minutes, setMinutes] = useState(String(data.estimatedMinutes));
+  const [plannedDate, setPlannedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [plannedTime, setPlannedTime] = useState('18:00');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,7 +25,10 @@ export default function FirstTaskScreen() {
       const estimatedMinutes = Number(minutes);
       if (!data.firstTask.trim()) throw new Error('Tell DAYO what you need to get done.');
       if (!Number.isInteger(estimatedMinutes) || estimatedMinutes <= 0) throw new Error('Enter a valid number of minutes.');
-      const task = await createTask({ title: data.firstTask, estimated_minutes: estimatedMinutes, priority: 'high', status: 'pending' });
+      const scheduled = new Date(`${plannedDate}T${plannedTime}:00`);
+      if (Number.isNaN(scheduled.getTime())) throw new Error('Enter a valid date and time.');
+      if (scheduled.getTime() + estimatedMinutes * 60_000 <= Date.now()) throw new Error('Choose a time that has not already passed.');
+      const task = await createTask({ title: data.firstTask, estimated_minutes: estimatedMinutes, deadline: scheduled.toISOString(), priority: 'high', status: 'pending' });
       update({ estimatedMinutes, firstTaskId: task.id });
       router.push('/onboarding/generated-plan');
     } catch (caught) {
@@ -46,6 +51,10 @@ export default function FirstTaskScreen() {
         <TextInput autoFocus onChangeText={(firstTask) => update({ firstTask })} placeholder="Finish my portfolio" placeholderTextColor="#999e99" style={styles.input} value={data.firstTask} />
         <Text style={styles.label}>Estimated minutes</Text>
         <TextInput keyboardType="number-pad" onChangeText={setMinutes} placeholder="45" placeholderTextColor="#999e99" style={styles.input} value={minutes} />
+        <View style={styles.scheduleRow}>
+          <View style={styles.scheduleField}><Text style={styles.label}>Day</Text><TextInput maxLength={10} onChangeText={setPlannedDate} placeholder="2026-08-22" placeholderTextColor="#999e99" style={styles.input} value={plannedDate} /></View>
+          <View style={styles.timeField}><Text style={styles.label}>Time</Text><TextInput keyboardType="numbers-and-punctuation" maxLength={5} onChangeText={setPlannedTime} placeholder="18:00" placeholderTextColor="#999e99" style={styles.input} value={plannedTime} /></View>
+        </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <View style={styles.bottom}>
           <DayoButton disabled={!data.firstTask.trim()} loading={loading} onPress={() => void createPlan()} variant="lime">✦  Create my plan</DayoButton>
@@ -63,6 +72,7 @@ const styles = StyleSheet.create({
   copy: { color: colors.muted, fontSize: 14, marginTop: 9 },
   label: { color: colors.ink, fontSize: 12, fontWeight: '700', marginBottom: 8 },
   input: { backgroundColor: colors.white, borderColor: colors.line, borderRadius: 14, borderWidth: 1, color: colors.ink, fontSize: 16, marginBottom: 18, padding: 16 },
+  scheduleRow: { flexDirection: 'row', gap: 10 }, scheduleField: { flex: 1.5 }, timeField: { flex: 1 },
   error: { color: colors.danger, fontSize: 13 },
   bottom: { marginTop: 'auto', paddingBottom: 10 },
 });

@@ -34,12 +34,38 @@ export async function createCalendarEvent(input: CreateCalendarEventInput): Prom
   return data as CalendarEvent;
 }
 
+export async function createCalendarEvents(inputs: CreateCalendarEventInput[]): Promise<CalendarEvent[]> {
+  if (inputs.length === 0) throw new Error('Select at least one day.');
+  const userId = await requireUserId();
+  const { data, error } = await supabase
+    .from('calendar_events')
+    .insert(inputs.map((input) => ({ ...input, title: input.title.trim(), user_id: userId })))
+    .select();
+
+  if (error) throw error;
+  return (data ?? []) as CalendarEvent[];
+}
+
 export async function deleteCalendarEvent(id: string): Promise<void> {
   const userId = await requireUserId();
   const { error } = await supabase
     .from('calendar_events')
     .delete()
     .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+}
+
+export async function updateCalendarEventForTask(
+  taskId: string,
+  updates: Pick<CreateCalendarEventInput, 'title' | 'starts_at' | 'ends_at'>,
+): Promise<void> {
+  const userId = await requireUserId();
+  const { error } = await supabase
+    .from('calendar_events')
+    .update({ ...updates, title: updates.title.trim() })
+    .eq('task_id', taskId)
     .eq('user_id', userId);
 
   if (error) throw error;

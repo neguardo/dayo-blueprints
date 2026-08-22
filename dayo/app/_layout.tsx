@@ -1,6 +1,8 @@
 import { Stack } from 'expo-router';
+import { NavigationBar } from 'expo-navigation-bar';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { ActivityIndicator, AppState, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { DayoLogo } from '../components/DayoLogo';
@@ -40,11 +42,26 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const enterFullscreen = () => {
+      NavigationBar.setHidden(true);
+    };
+
+    enterFullscreen();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') enterFullscreen();
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <SessionProvider>
         <OnboardingProvider>
-          <StatusBar style="light" />
+          <StatusBar hidden style="light" />
           <View style={styles.browserBackground}>
             <View style={styles.appShell}>
               <RootNavigator />

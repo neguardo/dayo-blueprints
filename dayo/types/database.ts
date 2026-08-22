@@ -76,7 +76,7 @@ export interface UserPreferences {
 export interface CreateTaskInput {
   title: string;
   estimated_minutes: number;
-  deadline?: string | null;
+  deadline: string;
   priority?: TaskPriority;
   status?: TaskStatus;
   description?: string | null;
